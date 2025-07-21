@@ -14,8 +14,8 @@ add_repositories("liteldev-repo https://github.com/LiteLDev/xmake-repo.git")
 -- add_requires("levibuildscript")
 
 add_requires(
-    "levilamina 1.2.0",
-    "levibuildscript 0.4.0"
+    "levilamina 1.3.4",
+    "levibuildscript"
 )
 
 if not has_config("vs_runtime") then
