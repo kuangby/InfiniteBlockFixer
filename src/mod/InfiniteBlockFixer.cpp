@@ -3,12 +3,12 @@
 #include "ll/api/memory/Hook.h"
 #include "ll/api/mod/RegisterHelper.h"
 #include "mc/deps/core/math/Vec3.h"
-#include "mc/deps/core/string/HashedString.h"
 #include "mc/world/level/BlockSource.h"
 #include "mc/world/level/block/Block.h"
 #include "mc/world/level/block/BlockLegacy.h"
 #include "mc/world/level/block/actor/BlockActor.h"
 #include "mc/world/level/block/actor/MovingBlockActor.h"
+#include "mc/world/level/block/actor/PistonBlockActor.h"
 #include "mc/world/level/block/registry/BlockTypeRegistry.h"
 
 
@@ -48,6 +48,33 @@ LL_TYPE_INSTANCE_HOOK(
     }
 }
 
+bool mutex = false;
+
+LL_TYPE_INSTANCE_HOOK(
+    InfiniteBlockFixerHook2,
+    ll::memory::HookPriority::Normal,
+    PistonBlockActor,
+    &PistonBlockActor::_moveCollidedEntities,
+    void,
+    BlockSource& region
+) {
+    mutex = true;
+    origin(region);
+    mutex = false;
+}
+
+LL_TYPE_INSTANCE_HOOK(
+    InfiniteBlockFixerHook3,
+    ll::memory::HookPriority::Normal,
+    PistonBlockActor,
+    &PistonBlockActor::_spawnMovingBlock,
+    void,
+    BlockSource&    region,
+    BlockPos const& blockpos
+) {
+    if (!mutex) origin(region, blockpos);
+}
+
 bool InfiniteBlockFixer::load() {
     getSelf().getLogger().debug("Loading...");
     // Code for loading the mod goes here.
@@ -58,6 +85,8 @@ bool InfiniteBlockFixer::enable() {
     getSelf().getLogger().debug("Enabling...");
     // Code for enabling the mod goes here.
     InfiniteBlockFixerHook::hook();
+    InfiniteBlockFixerHook2::hook();
+    InfiniteBlockFixerHook3::hook();
     return true;
 }
 
